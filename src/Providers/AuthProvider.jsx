@@ -1,35 +1,57 @@
-import { createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
-import React, { createContext } from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 import { auth } from '../firebase.init';
 
  export const AuthContext = createContext(null);
 
  const AuthProvider = ({children}) => {
+    const [user,setUser] =useState(null);
+    const [loading,setLoading] = useState(true);
     // const authInfo = {
     //     name: 'sakib khan is number one ....',
     const name ="context api";
         const createUser = (email,password) =>{
+            setLoading(true);
             return createUserWithEmailAndPassword(auth,email,password);
         }
 
         const signInUser = (email,password) =>{
+            setLoading(true);
             return signInWithEmailAndPassword(auth,email,password);
         }
 
-        onAuthStateChanged(auth,currentUser =>{
-            if(currentUser){
-                console.log('current user logged in ',currentUser);
-            }
-            else{
-                console.log("no user found");
-            }
-        })
+        // onAuthStateChanged(auth,currentUser =>{
+        //     if(currentUser){
+        //         console.log('current user logged in ',currentUser);
+        //     }
+        //     else{
+        //         console.log("no user found");
+        //     }
+        // })
+
+        useEffect(()=>{
+            const unsubscribe =onAuthStateChanged(auth,currentUser =>{
+                console.log("user",currentUser)
+                setUser(currentUser);
+                setLoading(true);
+            })
+        
+
+            return ()=> unsubscribe();
+        },[])
+
+        const signOutUser = ()=>{
+            return signOut(auth);
+            setLoading(true);
+        }
         
         
         const  authInfo = {
             name,
-            createUser,signInUser
+            loading,
+           
+            createUser,signInUser,user,signOutUser
         }
     
     return (
